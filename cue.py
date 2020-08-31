@@ -32,6 +32,12 @@ class _Subscriber(Generic[PublisherReturnValue]):
         self.publisher = publisher
         self.__call__ = func
 
+    def __call__(self, *args, **kwargs):
+        """
+        To support also cls.__call__(instance, ...)
+        """
+        return self.__call__(*args, **kwargs)
+
     def __get__(
         self,
         instance: Optional[object], owner: Type[object]
@@ -46,6 +52,9 @@ class _Subscriber(Generic[PublisherReturnValue]):
         if not hasattr(owner, '_subscribers'):
             owner._subscribers = []
         owner._subscribers.append(self)
+
+        if getattr(owner, '_subscribed', False):
+            return
 
         if hasattr(owner, '__init__'):
             def init_wrapper(init_func):
@@ -69,7 +78,7 @@ class _Subscriber(Generic[PublisherReturnValue]):
                 super().__init__(*args, **kwargs)
 
             owner.__init__ = _init
-
+        owner._subscribed = True
 
 class BasePublisher(Generic[PublisherReturnValue]):
     def __init__(self) -> None:
