@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from types import BuiltinFunctionType
+from types import BuiltinFunctionType, MethodWrapperType
 from typing import Any, Callable, Generic, List, Optional, Type, \
     TypeVar, \
     Union, \
@@ -105,14 +105,14 @@ class publisher(BasePublisher[PublisherReturnValue]):
     def __get__(self, instance: Optional[object], owner: Type[object]) -> publisher[
         PublisherReturnValue]:
         self._instance = instance
-        if not isinstance(self._func, BuiltinFunctionType):
+        if not isinstance(self._func, (BuiltinFunctionType, MethodWrapperType)):
             self._func = self._func.__get__(instance, owner)
         return self
 
     def __repr__(self):
         return repr(self._func)
 
-class PublisherField(
+class Field(
     Generic[PublisherClass, PublisherReturnValue],
     BasePublisher[PublisherReturnValue]
 ):
@@ -123,7 +123,7 @@ class PublisherField(
         self,
         instance: None,
         owner: Type[PublisherClass]
-    ) -> PublisherField[PublisherClass, PublisherReturnValue]:
+    ) -> Field[PublisherClass, PublisherReturnValue]:
         ...
 
     @overload
@@ -138,7 +138,7 @@ class PublisherField(
         instance: Optional[PublisherClass],
         owner: Type[PublisherClass]
     ) -> Union[
-        PublisherField[PublisherClass, PublisherReturnValue],
+        Field[PublisherClass, PublisherReturnValue],
         Optional[PublisherReturnValue]
     ]:
         if instance is None:
@@ -153,7 +153,7 @@ class PublisherField(
 
 @overload
 def subscribe(
-    publisher: PublisherField[PublisherClass, PublisherReturnValue]
+    publisher: Field[PublisherClass, PublisherReturnValue]
 ) -> Callable[
     [Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]],
     Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]
@@ -173,7 +173,7 @@ def subscribe(
 
 def subscribe(
     publisher: Union[
-        PublisherField[PublisherClass, PublisherReturnValue],
+        Field[PublisherClass, PublisherReturnValue],
         PublisherFunc[PublisherReturnValue]
     ]
 ) -> Union[

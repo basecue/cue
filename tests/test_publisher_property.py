@@ -1,13 +1,13 @@
 import pytest
 
-from cue import PublisherField
+from cue import Field
 from tests import subscribers as test_subscribers
 
 
 @pytest.fixture
 def publisher_class():
     class Cls:
-        property = PublisherField()
+        property = Field()
 
     return Cls
 
