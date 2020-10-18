@@ -114,7 +114,7 @@ class publisher(BasePublisher[PublisherReturnValue]):
     def __repr__(self):
         return repr(self._func)
 
-class Field(
+class Cue(
     Generic[PublisherClass, PublisherReturnValue],
     BasePublisher[PublisherReturnValue]
 ):
@@ -125,7 +125,7 @@ class Field(
         self,
         instance: None,
         owner: Type[PublisherClass]
-    ) -> Field[PublisherClass, PublisherReturnValue]:
+    ) -> Cue[PublisherClass, PublisherReturnValue]:
         ...
 
     @overload
@@ -140,7 +140,7 @@ class Field(
         instance: Optional[PublisherClass],
         owner: Type[PublisherClass]
     ) -> Union[
-        Field[PublisherClass, PublisherReturnValue],
+        Cue[PublisherClass, PublisherReturnValue],
         Optional[PublisherReturnValue]
     ]:
         if instance is None:
@@ -155,7 +155,7 @@ class Field(
 
 @overload
 def subscribe(
-    publisher: Field[PublisherClass, PublisherReturnValue]
+    publisher: Cue[PublisherClass, PublisherReturnValue]
 ) -> Callable[
     [Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]],
     Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]
@@ -175,7 +175,7 @@ def subscribe(
 
 def subscribe(
     publisher: Union[
-        Field[PublisherClass, PublisherReturnValue],
+        Cue[PublisherClass, PublisherReturnValue],
         PublisherFunc[PublisherReturnValue]
     ]
 ) -> Union[
