@@ -7,6 +7,8 @@ from typing import Any, Callable, Generic, List, Optional, Type, \
     Union, \
     overload
 
+__version__ = '0.0.1b'
+
 T = TypeVar('T')
 
 PublisherReturnValue = TypeVar('PublisherReturnValue')
