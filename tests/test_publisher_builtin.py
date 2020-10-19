@@ -1,12 +1,12 @@
 import pytest
 
 from tests import subscribers as test_subscribers
-from cue import publisher as cue_publisher
+import cue
 
 @pytest.fixture
 def publisher_class():
     class PublishingList(list):
-        append = cue_publisher(list.append)
+        append = cue.publisher(list.append)
 
     class Cls:
         property = PublishingList()

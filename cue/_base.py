@@ -7,8 +7,6 @@ from typing import Any, Callable, Generic, List, Optional, Type, \
     Union, \
     overload
 
-__version__ = '0.0.1b'
-
 T = TypeVar('T')
 
 PublisherReturnValue = TypeVar('PublisherReturnValue')
@@ -82,6 +80,7 @@ class _Subscriber(Generic[PublisherReturnValue]):
             owner.__init__ = _init
         owner._subscribed = True
 
+
 class BasePublisher(Generic[PublisherReturnValue]):
     def __init__(self) -> None:
         self._subscribers: List[SubscriberFunc[PublisherReturnValue]] = []
@@ -107,12 +106,13 @@ class publisher(BasePublisher[PublisherReturnValue]):
     def __get__(self, instance: Optional[object], owner: Type[object]) -> publisher[
         PublisherReturnValue]:
         self._instance = instance
-        if not isinstance(self._func, (BuiltinFunctionType, MethodWrapperType)):
+        if not isinstance(self._func, BuiltinFunctionType):
             self._func = self._func.__get__(instance, owner)
         return self
 
     def __repr__(self):
         return repr(self._func)
+
 
 class Cue(
     Generic[PublisherClass, PublisherReturnValue],
