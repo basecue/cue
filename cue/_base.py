@@ -106,7 +106,7 @@ class publisher(BasePublisher[PublisherReturnValue]):
     def __get__(self, instance: Optional[object], owner: Type[object]) -> publisher[
         PublisherReturnValue]:
         self._instance = instance
-        if not isinstance(self._func, BuiltinFunctionType):
+        if not isinstance(self._func, (BuiltinFunctionType, MethodWrapperType)):
             self._func = self._func.__get__(instance, owner)
         return self
 
