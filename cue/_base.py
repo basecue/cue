@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import functools
 from types import BuiltinFunctionType, MethodWrapperType
 from typing import Any, Callable, Generic, List, NamedTuple, Optional, Type, \
@@ -90,14 +91,9 @@ class Subscribers(NamedTuple):
     after: List[SubscriberFunc[PublisherReturnValue]]
 
 
-class BasePublisher(Generic[PublisherReturnValue]):
-    def __init__(self) -> None:
-        self._subscribers = Subscribers([], [])
-
-
-class publisher(BasePublisher[PublisherReturnValue]):
+class _Publisher(Generic[PublisherReturnValue]):
     def __init__(self, func: PublisherFunc[PublisherReturnValue]) -> None:
-        super().__init__()
+        self._subscribers = Subscribers([], [])
         self._func = func
         self._instance: Any = None
 
@@ -127,8 +123,7 @@ class publisher(BasePublisher[PublisherReturnValue]):
         self,
         instance: Optional[object],
         owner: Type[object]
-    ) -> publisher[
-        PublisherReturnValue]:
+    ) -> publisher[PublisherReturnValue]:
         if instance and isinstance(self._func, property):
             return self._func.__get__(instance)
         self._instance = instance
@@ -138,6 +133,34 @@ class publisher(BasePublisher[PublisherReturnValue]):
 
     def __repr__(self):
         return repr(self._func)
+
+
+def _getter(p_field_name):
+    def getter(self):
+        return getattr(self, p_field_name)
+
+    return getter
+
+
+def _setter(p_field_name):
+    def setter(self, value):
+        setattr(self, p_field_name, value)
+
+    return setter
+
+
+def publisher(obj):
+    if isinstance(obj, type):
+        if dataclasses.is_dataclass(obj):
+            for field in dataclasses.fields(obj):
+                p_field_name = f"_{field.name}"
+                p_property = property(_getter(p_field_name))
+                p_property = p_property.setter(_setter(p_field_name))
+                setattr(obj, field.name, _Publisher(p_property))
+
+            return obj
+    else:
+        return _Publisher(obj)
 
 
 # @overload
