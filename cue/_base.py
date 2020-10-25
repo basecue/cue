@@ -116,8 +116,21 @@ class publisher(BasePublisher[PublisherReturnValue]):
             subscriber(*subscriber_args, **kwargs)
         return ret
 
-    def __get__(self, instance: Optional[object], owner: Type[object]) -> publisher[
+    def __set__(self, instance, value):
+        for subscriber in self._subscribers.before:
+            subscriber(instance, value)
+        self._func.__set__(instance, value)
+        for subscriber in self._subscribers.after:
+            subscriber(instance, value)
+
+    def __get__(
+        self,
+        instance: Optional[object],
+        owner: Type[object]
+    ) -> publisher[
         PublisherReturnValue]:
+        if instance and isinstance(self._func, property):
+            return self._func.__get__(instance)
         self._instance = instance
         if not isinstance(self._func, (BuiltinFunctionType, MethodWrapperType)):
             self._func = self._func.__get__(instance, owner)
@@ -127,57 +140,6 @@ class publisher(BasePublisher[PublisherReturnValue]):
         return repr(self._func)
 
 
-class Cue(
-    Generic[PublisherClass, PublisherReturnValue],
-    BasePublisher[PublisherReturnValue]
-):
-    _value: PublisherReturnValue
-
-    @overload
-    def __get__(
-        self,
-        instance: None,
-        owner: Type[PublisherClass]
-    ) -> Cue[PublisherClass, PublisherReturnValue]:
-        ...
-
-    @overload
-    def __get__(
-        self,
-        instance: PublisherClass,
-        owner: Type[PublisherClass]
-    ) -> Optional[PublisherReturnValue]:
-        ...
-
-    def __get__(self,
-        instance: Optional[PublisherClass],
-        owner: Type[PublisherClass]
-    ) -> Union[
-        Cue[PublisherClass, PublisherReturnValue],
-        Optional[PublisherReturnValue]
-    ]:
-        if instance is None:
-            return self
-        return self._value
-
-    def __set__(self, instance: PublisherClass, value: PublisherReturnValue) -> None:
-        for subscriber in self._subscribers.before:
-            subscriber(instance)
-        self._value = value
-        for subscriber in self._subscribers.after:
-            subscriber(instance)
-
-
-# @overload
-# def subscribe(
-#     publisher: Cue[PublisherClass, PublisherReturnValue]
-# ) -> Callable[
-#     [Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]],
-#     Callable[[PublisherClass, PublisherReturnValue], SubscriberReturnValue]
-# ]:
-#     ...
-# 
-# 
 # @overload
 # def subscribe(
 #     publisher: PublisherFunc[PublisherReturnValue]
@@ -221,7 +183,6 @@ def _subscribe(
         Callable[[Any, PublisherReturnValue], SubscriberReturnValue],
         Callable[[PublisherReturnValue], SubscriberReturnValue]
     ]:
-        # subscribers.append(func)
         return _Subscriber(specific_publisher_subscribers, func)
 
     return __subscribe

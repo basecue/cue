@@ -6,7 +6,7 @@ from ._base import publisher
 class CueDict(dict):
     __setitem__ = publisher(dict.__setitem__)
     __delitem__ = publisher(dict.__delitem__)
-    
+
 
 class CueSet(set):
     add = publisher(set.add)

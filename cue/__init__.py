@@ -1,4 +1,4 @@
-from ._base import Cue, publisher, subscribe
+from ._base import publisher, subscribe
 from ._containers import CueDict, CueList, CueSet
 
-__version__ = '0.0.1b'
+__version__ = '0.1.0'
