@@ -1,43 +1,99 @@
 import dataclasses
+from types import SimpleNamespace
 from typing import Union
+
+import pytest
 
 from cue import publisher, subscribe
 
 
-@publisher
-@dataclasses.dataclass
-class Klass:
-    text: str
-    flag: bool
+@pytest.fixture
+def setup():
+    @publisher
+    @dataclasses.dataclass
+    class Klass:
+        text: str
+        number: int
 
-    _flag: bool
+        _number: int = dataclasses.field(init=False, repr=False)
 
-    @property
-    def flag(self) -> bool:
-        return self._flag
+        @property
+        def number(self) -> int:
+            return self._number
 
-    @flag.setter  # FIXME is it publisher neccesary?
-    def flag(self, value) -> None:
-        self._flag = value
+        @number.setter  # FIXME is it publisher neccesary?
+        def number(self, value) -> None:
+            self._number = value
+
+    subscribers = SimpleNamespace(
+        on_change_number_before=[],
+        on_change_number_after=[],
+        on_change_both_before=[],
+        on_change_both_after=[],
+    )
+
+    @subscribe.before(Klass.number)
+    def on_change_number_before(instance: Klass, number: int) -> None:
+        subscribers.on_change_number_before.append((instance, number))
+
+    @subscribe.after(Klass.number)
+    def on_change_number_after(instance: Klass, number: int) -> None:
+        subscribers.on_change_number_after.append((instance, number))
+
+    @subscribe.before(Klass.text)
+    @subscribe.before(Klass.number)
+    def on_change_both_before(instance: Klass, value: Union[str, int]) -> None:
+        subscribers.on_change_both_before.append((instance, value))
+
+    @subscribe.before(Klass.text)
+    @subscribe.before(Klass.number)
+    def on_change_both_after(instance: Klass, value: Union[str, int]) -> None:
+        subscribers.on_change_both_after.append((instance, value))
+
+    return Klass, subscribers
 
 
-@subscribe.after(Klass.flag)
-def on_change_flag(instance: Klass, flag: bool) -> None:
-    pass
+def test(setup):
+    Klass, subscribers = setup
 
+    instance = Klass(text="init", number=10)
+    instance_2 = Klass(text="init_2", number=20)
 
-@subscribe.before(Klass.flag)
-def on_change_flag(instance: Klass, flag: bool) -> None:
-    pass
+    instance.text = "text"
+    instance_2.text = "text_2"
+    instance.number = 30
+    instance_2.number = 40
 
+    assert subscribers.on_change_number_before == [
+        (instance, 10),
+        (instance_2, 20),
+        (instance, 30),
+        (instance_2, 40),
+    ]
+    assert subscribers.on_change_number_after == [
+        (instance, 10),
+        (instance_2, 20),
+        (instance, 30),
+        (instance_2, 40),
+    ]
+    assert subscribers.on_change_both_before == [
+        (instance, 'init'),
+        (instance, 10),
+        (instance_2, 'init_2'),
+        (instance_2, 20),
+        (instance, 'text'),
+        (instance_2, 'text_2'),
+        (instance, 30),
+        (instance_2, 40),
+    ]
 
-@subscribe.before(Klass.text)
-@subscribe.before(Klass.flag)
-def on_change(instance: Klass, value: Union[str, bool]) -> None:
-    pass
-
-
-@subscribe.before(Klass.flag)
-@subscribe.before(Klass.text)
-def on_change(instance: Klass, value: Union[str, bool]) -> None:
-    pass
+    assert subscribers.on_change_both_after == [
+        (instance, 'init'),
+        (instance, 10),
+        (instance_2, 'init_2'),
+        (instance_2, 20),
+        (instance, 'text'),
+        (instance_2, 'text_2'),
+        (instance, 30),
+        (instance_2, 40),
+    ]

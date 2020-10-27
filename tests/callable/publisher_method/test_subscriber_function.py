@@ -1,41 +1,98 @@
+from types import SimpleNamespace
+
+import pytest
+
 from cue import publisher, subscribe
 
 
-class Klass:
-    @publisher
-    def event(self, arg, kwarg: bool = True):
-        pass
+@pytest.fixture
+def setup():
+    class Klass:
+        @publisher
+        def event(self, text: str, flag: bool = True):
+            pass
 
-    @publisher
-    def event_2(self, arg, arg_2, kwarg: bool = True):
-        pass
+        @publisher
+        def event_2(self, text: str, number: int, flag: bool = True):
+            pass
+
+    subscribers = SimpleNamespace(
+        on_event_before=[],
+        on_event_after=[],
+        on_event_2_before=[],
+        on_event_2_after=[],
+        on_both_events=[],
+    )
+
+    @subscribe.before(Klass.event)
+    def on_event_before(instance: Klass, text, flag: bool = True):
+        subscribers.on_event_before.append((instance, text, flag))
+
+    @subscribe.after(Klass.event)
+    def on_event_after(instance: Klass, text, flag: bool = True):
+        subscribers.on_event_after.append((instance, text, flag))
+
+    @subscribe.before(Klass.event_2)
+    def on_event_2_before(instance: Klass, text, number, flag: bool = True):
+        subscribers.on_event_2_before.append((instance, text, number, flag))
+
+    @subscribe.after(Klass.event_2)
+    def on_event_2_after(instance: Klass, text, number, flag: bool = True):
+        subscribers.on_event_2_after.append((instance, text, number, flag))
+
+    @subscribe.before(Klass.event)
+    @subscribe.before(Klass.event_2)
+    def on_both_events(instance: Klass, *args, **kwargs):
+        subscribers.on_both_events.append((instance, args, kwargs))
+
+    return Klass, subscribers
 
 
-@subscribe.before(Klass.event)
-def on_event(arg, *, kwarg):
-    pass
+def test_event(setup):
+    Klass, subscribers = setup
+
+    instance = Klass()
+    instance_2 = Klass()
+
+    instance.event('text', flag=False)
+    instance_2.event('text_2', flag=True)
+
+    assert subscribers.on_event_before == [
+        (instance, 'text', False),
+        (instance_2, 'text_2', True),
+    ]
+    assert subscribers.on_event_after == [
+        (instance, 'text', False),
+        (instance_2, 'text_2', True),
+    ]
+    assert subscribers.on_event_2_before == []
+    assert subscribers.on_event_2_after == []
+    assert subscribers.on_both_events == [
+        (instance, ('text',), {"flag": False}),
+        (instance_2, ('text_2',), {"flag": True}),
+    ]
 
 
-@subscribe.after(Klass.event)
-def on_event(arg, *, kwarg):
-    pass
+def test_event_2(setup):
+    Klass, subscribers = setup
 
+    instance = Klass()
+    instance_2 = Klass()
 
-@subscribe.before(Klass.event_2)
-def on_event_2(arg, arg_2, *, kwarg):
-    pass
+    instance.event_2('text', 10, flag=False)
+    instance_2.event_2('text_2', 20, flag=True)
 
-
-@subscribe.after(Klass.event_2)
-def on_event_2(arg, arg_2, *, kwarg):
-    pass
-
-
-@subscribe.before(Klass.event)
-@subscribe.before(Klass.event_2)
-def on_both_events(*args, **kwargs):
-    pass
-
-
-instance = Klass()
-instance_2 = Klass()
+    assert subscribers.on_event_before == []
+    assert subscribers.on_event_after == []
+    assert subscribers.on_event_2_before == [
+        (instance, 'text', 10, False),
+        (instance_2, 'text_2', 20, True),
+    ]
+    assert subscribers.on_event_2_after == [
+        (instance, 'text', 10, False),
+        (instance_2, 'text_2', 20, True),
+    ]
+    assert subscribers.on_both_events == [
+        (instance, ('text', 10), {"flag": False}),
+        (instance_2, ('text_2', 20), {"flag": True}),
+    ]

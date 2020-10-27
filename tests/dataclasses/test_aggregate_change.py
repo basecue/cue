@@ -9,6 +9,7 @@ from cue import publisher, subscribe
 
 @pytest.fixture
 def setup():
+
     @publisher
     @dataclasses.dataclass
     class Klass:
@@ -26,20 +27,20 @@ def setup():
             pass
 
     subscribers = SimpleNamespace(
-        on_change_text_after=[],
         on_change_text_before=[],
+        on_change_number_after=[],
         on_change_both_before=[],
         on_change_before=[],
         on_change_after=[],
     )
 
-    @subscribe.before(Klass.number)
-    def on_change_text_before(instance: Klass, number):
-        subscribers.on_change_text_before.append((instance, number))
+    @subscribe.before(Klass.text)
+    def on_change_text_before(instance: Klass, text: str):
+        subscribers.on_change_text_before.append((instance, text))
 
-    @subscribe.after(Klass.text)
-    def on_change_text_after(instance: Klass, text):
-        subscribers.on_change_text_after.append((instance, text))
+    @subscribe.after(Klass.number)
+    def on_change_number_after(instance: Klass, number: int):
+        subscribers.on_change_number_after.append((instance, number))
 
     @subscribe.before(Klass.text)
     @subscribe.before(Klass.number)
@@ -48,7 +49,7 @@ def setup():
 
     @subscribe.before(Klass.on_change)
     def on_change_before(instance):
-        subscribers.on_change_both_before.append(instance)
+        subscribers.on_change_before.append(instance)
 
     @subscribe.after(Klass.on_change)
     def on_change_after(instance):
@@ -57,7 +58,7 @@ def setup():
     return Klass, subscribers
 
 
-def test_event(setup):
+def test(setup):
     Klass, subscribers = setup
 
     instance = Klass(text="init", number=10)
@@ -74,11 +75,11 @@ def test_event(setup):
         (instance, 'text'),
         (instance_2, 'text_2'),
     ]
-    assert subscribers.on_change_text_after == [
-        (instance, 'init'),
-        (instance_2, 'init_2'),
-        (instance, 'text'),
-        (instance_2, 'text_2'),
+    assert subscribers.on_change_number_after == [
+        (instance, 10),
+        (instance_2, 20),
+        (instance, 30),
+        (instance_2, 40),
     ]
     assert subscribers.on_change_both_before == [
         (instance, 'init'),

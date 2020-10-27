@@ -53,7 +53,7 @@ def setup():
     return Klass, subscribers
 
 
-def test_event(setup):
+def test(setup):
     Klass, subscribers = setup
     instance = Klass(text="init", number=10)
     instance_2 = Klass(text="init_2", number=20)
