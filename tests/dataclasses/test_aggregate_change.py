@@ -15,15 +15,14 @@ def setup():
         text: str
         number: int
 
-        def __post_init__(self):
-            @subscribe.after(Klass.text)
-            @subscribe.after(Klass.number)
-            def _change(instance, *_args):
-                instance.on_change()
-
         @publisher
         def on_change(self):
             pass
+
+    @subscribe.after(Klass.text)
+    @subscribe.after(Klass.number)
+    def Klass_change(instance, *_args):
+        instance.on_change()
 
     subscribers = SimpleNamespace(
         on_change_text_before=[],
@@ -56,7 +55,7 @@ def setup():
 
     return Klass, subscribers
 
-@pytest.mark.xfail
+
 def test(setup):
     Klass, subscribers = setup
 
