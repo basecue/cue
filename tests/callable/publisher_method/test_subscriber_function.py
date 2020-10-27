@@ -73,6 +73,31 @@ def test_event(setup):
     ]
 
 
+def test_event_class(setup):
+    Klass, subscribers = setup
+
+    instance = Klass()
+    instance_2 = Klass()
+
+    Klass.event(instance, 'text', flag=False)
+    Klass.event(instance_2, 'text_2', flag=True)
+
+    assert subscribers.on_event_before == [
+        (instance, 'text', False),
+        (instance_2, 'text_2', True),
+    ]
+    assert subscribers.on_event_after == [
+        (instance, 'text', False),
+        (instance_2, 'text_2', True),
+    ]
+    assert subscribers.on_event_2_before == []
+    assert subscribers.on_event_2_after == []
+    assert subscribers.on_both_events == [
+        (instance, ('text',), {"flag": False}),
+        (instance_2, ('text_2',), {"flag": True}),
+    ]
+
+
 def test_event_2(setup):
     Klass, subscribers = setup
 

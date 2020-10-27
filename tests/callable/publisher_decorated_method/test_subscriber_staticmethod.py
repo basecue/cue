@@ -60,7 +60,6 @@ def test_event_staticmethod(setup):
     assert Subscriber.subscribers.on_event_classmethod == [
     ]
 
-
 @pytest.mark.xfail
 def test_event_staticmethod_subscriber_instance(setup):
     Klass, Subscriber = setup

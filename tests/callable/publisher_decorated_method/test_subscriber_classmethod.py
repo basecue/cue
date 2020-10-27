@@ -30,12 +30,15 @@ def setup():
 
         @subscribe.before(Klass.event_staticmethod)
         @classmethod
-        def on_event_staticmethod(cls, instance_cls: Type[Klass], text: str, flag: bool = True):
-            cls.subscribers.on_event_staticmethod.append((cls, instance_cls, text, flag))
+        def on_event_staticmethod(cls, instance_cls: Type[Klass], text: str,
+            flag: bool = True):
+            cls.subscribers.on_event_staticmethod.append(
+                (cls, instance_cls, text, flag))
 
         @subscribe.before(Klass.event_classmethod)
         @classmethod
-        def on_event_classmethod(cls, instance_cls: Type[Klass], text: str, flag: bool = True):
+        def on_event_classmethod(cls, instance_cls: Type[Klass], text: str,
+            flag: bool = True):
             cls.subscribers.on_event_classmethod.append((cls, instance_cls, text, flag))
 
     class Subscriber(_Subscriber):

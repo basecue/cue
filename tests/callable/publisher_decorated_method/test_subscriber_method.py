@@ -63,6 +63,7 @@ def setup():
     return Klass, Subscriber
 
 
+@pytest.mark.xfail
 def test_event_staticmethod(setup):
     Klass, Subscriber = setup
 
@@ -96,7 +97,7 @@ def test_event_staticmethod(setup):
         (subscriber_2, Klass, ('text_2',), {"flag": True}),
     ]
 
-
+@pytest.mark.xfail
 def test_event_classmethod(setup):
     Klass, Subscriber = setup
 

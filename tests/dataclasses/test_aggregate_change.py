@@ -9,7 +9,6 @@ from cue import publisher, subscribe
 
 @pytest.fixture
 def setup():
-
     @publisher
     @dataclasses.dataclass
     class Klass:
@@ -57,7 +56,7 @@ def setup():
 
     return Klass, subscribers
 
-
+@pytest.mark.xfail
 def test(setup):
     Klass, subscribers = setup
 

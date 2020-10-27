@@ -33,7 +33,6 @@ def setup():
 
     return Klass, Subscriber
 
-
 @pytest.mark.xfail
 def test(setup):
     Klass, Subscriber = setup
@@ -42,6 +41,25 @@ def test(setup):
 
     instance.event('text', flag=False)
     instance_2.event('text_2', flag=True)
+
+    assert Subscriber.subscribers.on_event_staticmethod == [
+        (instance, 'text', False),
+        (instance_2, 'text_2', True)
+    ]
+    assert Subscriber.subscribers.on_event_classmethod == [
+        (Subscriber, instance, 'text', False),
+        (Subscriber, instance_2, 'text_2', True)
+    ]
+
+
+@pytest.mark.xfail
+def test_class_call(setup):
+    Klass, Subscriber = setup
+    instance = Klass()
+    instance_2 = Klass()
+
+    Klass.event(instance, 'text', flag=False)
+    Klass.event(instance_2, 'text_2', flag=True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),

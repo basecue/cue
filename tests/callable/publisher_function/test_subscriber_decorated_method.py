@@ -32,7 +32,6 @@ def setup():
 
     return event, Subscriber
 
-
 @pytest.mark.xfail
 def test(setup):
     event, Subscriber = setup
@@ -44,7 +43,6 @@ def test(setup):
     assert Subscriber.subscribers.on_event_classmethod == [
         (Subscriber, 'text', False)
     ]
-
 
 @pytest.mark.xfail
 def test_subscriber_instance(setup):
