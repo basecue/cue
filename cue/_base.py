@@ -27,18 +27,20 @@ FuncT = Callable[..., Any]
 class _Subscriber(Generic[PublisherReturnValue]):
     def __init__(
         self,
-        specific_publisher_subscribers: List,
         func: Callable[[PublisherReturnValue], Any],
     ):
-        specific_publisher_subscribers.append(func)
-        self.specific_publisher_subscribers = specific_publisher_subscribers
         self.__call__ = func
+        self.specific_publisher_subscribers_set = set()
 
-    def __call__(self, *args, **kwargs):
-        """
-        To support also cls.__call__(instance, ...)
-        """
-        return self.__call__(*args, **kwargs)
+    def subscribe(self, specific_publisher_subscribers):
+        specific_publisher_subscribers.append(self.__call__)
+        self.specific_publisher_subscribers_set.add(specific_publisher_subscribers)
+
+    # def __call__(self, *args, **kwargs):
+    #     """
+    #     To support also cls.__call__(instance, ...)
+    #     """
+    #     return self.__call__(*args, **kwargs)
 
     def __get__(
         self,
@@ -50,40 +52,36 @@ class _Subscriber(Generic[PublisherReturnValue]):
 
     def __set_name__(self, owner: Type[object], name: str) -> None:
         # for method decorator it should be bind to instance
-        self.specific_publisher_subscribers.remove(self.__call__)
-        if not hasattr(owner, '_subscribers'):
-            owner._subscribers = []
-
-        owner._subscribers.append(
-            (self.specific_publisher_subscribers, self.__call__)
-        )
-
-        if getattr(owner, '_subscribed', False):
-            return
+        for specific_publisher_subscribers in self.specific_publisher_subscribers_set:
+            specific_publisher_subscribers.remove(self.__call__)
 
         if hasattr(owner, '__init__'):
             def init_wrapper(init_func):
                 @functools.wraps(init_func)
-                def _wrapper(self, *args, **kwargs):
-                    for specific_publisher_subscribers, func in self._subscribers:
-                        _subscribe(specific_publisher_subscribers)(
-                            func.__get__(self, self.__class__)
+                def _wrapper(instance, *args, **kwargs):
+                    for specific_publisher_subscribers in self.specific_publisher_subscribers_set:
+                        specific_publisher_subscribers.append(
+                            self.__call__.__get__(instance, instance.__class__)
                         )
-                    init_func(self, *args, **kwargs)
+                    init_func(instance, *args, **kwargs)
 
                 return _wrapper
 
             owner.__init__ = init_wrapper(owner.__init__)
         else:
-            def _init(self, *args, **kwargs):
-                for specific_publisher_subscribers, func in self._subscribers:
+            def _init(instance, *args, **kwargs):
+                for specific_publisher_subscribers in self.specific_publisher_subscribers_set:
                     _subscribe(specific_publisher_subscribers)(
-                        func.__get__(self, self.__class__)
+                        self.__call__.__get__(instance, instance.__class__)
                     )
                 super().__init__(*args, **kwargs)
 
             owner.__init__ = _init
-        owner._subscribed = True
+
+
+class SubscriberList(list):
+    def __hash__(self):
+        return id(self)
 
 
 class Subscribers(NamedTuple):
@@ -93,7 +91,7 @@ class Subscribers(NamedTuple):
 
 class _Publisher(Generic[PublisherReturnValue]):
     def __init__(self, func: PublisherFunc[PublisherReturnValue]) -> None:
-        self._subscribers = Subscribers([], [])
+        self._subscribers = Subscribers(SubscriberList(), SubscriberList())
         self._func = func
         self._instance: Any = None
 
@@ -206,7 +204,13 @@ def _subscribe(
         Callable[[Any, PublisherReturnValue], SubscriberReturnValue],
         Callable[[PublisherReturnValue], SubscriberReturnValue]
     ]:
-        return _Subscriber(specific_publisher_subscribers, func)
+        if isinstance(func, _Subscriber):
+            subscriber = func
+        else:
+            subscriber = _Subscriber(func)
+
+        subscriber.subscribe(specific_publisher_subscribers)
+        return subscriber
 
     return __subscribe
 

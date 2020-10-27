@@ -56,7 +56,6 @@ def test_event(setup):
     subscriber_2 = Subscriber()
 
     publishers.event('text', flag=False)
-    publishers.event_2('text', 42, flag=False)
 
     assert Subscriber.subscribers.on_event_before == [
         (subscriber, 'text', False),
@@ -69,8 +68,8 @@ def test_event(setup):
     assert Subscriber.subscribers.on_event_2_before == []
     assert Subscriber.subscribers.on_event_2_after == []
     assert Subscriber.subscribers.on_both_events == [
-        ((subscriber, 'text',), {"flag": False}),
-        ((subscriber_2, 'text',), {"flag": False}),
+        (subscriber, ('text',), {"flag": False}),
+        (subscriber_2, ('text',), {"flag": False}),
     ]
 
 
@@ -79,20 +78,19 @@ def test_event_2(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    publishers.event('text', flag=False)
     publishers.event_2('text', 42, flag=False)
 
     assert Subscriber.subscribers.on_event_before == []
     assert Subscriber.subscribers.on_event_after == []
     assert Subscriber.subscribers.on_event_2_before == [
-        (subscriber, 'text', False),
-        (subscriber_2, 'text', False),
+        (subscriber, 'text', 42, False),
+        (subscriber_2, 'text', 42, False),
     ]
     assert Subscriber.subscribers.on_event_2_after == [
-        (subscriber, 'text', False),
-        (subscriber_2, 'text', False),
+        (subscriber, 'text', 42, False),
+        (subscriber_2, 'text', 42, False),
     ]
     assert Subscriber.subscribers.on_both_events == [
-        ((subscriber, 'text',), {"flag": False}),
-        ((subscriber_2, 'text',), {"flag": False}),
+        (subscriber, ('text', 42), {"flag": False}),
+        (subscriber_2, ('text', 42), {"flag": False}),
     ]
