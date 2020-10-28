@@ -12,12 +12,12 @@ def setup():
         @publisher
         @staticmethod
         def event_staticmethod(text: str, flag: bool = True):
-            pass
+            return text, flag
 
         @publisher
         @classmethod
         def event_classmethod(cls, text: str, number: int, flag: bool = True):
-            pass
+            return text, number, flag
 
     class Klass(_Klass):
         pass
@@ -69,8 +69,11 @@ def test_event_staticmethod(setup):
     instance_2 = Klass()
 
 
-    instance.event_staticmethod('text', flag=False)
-    instance_2.event_staticmethod('text_2', flag=True)
+    return_value_instance = instance.event_staticmethod('text', flag=False)
+    return_value_instance_2 = instance_2.event_staticmethod('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert subscribers.on_event_staticmethod_before == [
         (Klass, 'text', False),
@@ -100,8 +103,11 @@ def test_event_classmethod(setup):
     instance = Klass()
     instance_2 = Klass()
 
-    instance.event_classmethod('text', 10, flag=False)
-    instance_2.event_classmethod('text_2', 20, flag=True)
+    return_value_instance = instance.event_classmethod('text', 10, flag=False)
+    return_value_instance_2 = instance_2.event_classmethod('text_2', 20, flag=True)
+
+    assert return_value_instance == ("text", 10, False)
+    assert return_value_instance_2 == ("text_2", 20, True)
 
     assert subscribers.on_event_staticmethod_before == []
     assert subscribers.on_event_staticmethod_after_ == []

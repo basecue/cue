@@ -67,23 +67,20 @@ def test(setup):
     instance.number = 30
     instance_2.number = 40
 
+    assert instance.text == "text"
+    assert instance_2.text == "text_2"
+    assert instance.number == 30
+    assert instance_2.number == 40
+
     assert subscribers.on_change_text_before == [
-        (instance, 'init'),
-        (instance_2, 'init_2'),
         (instance, 'text'),
         (instance_2, 'text_2'),
     ]
     assert subscribers.on_change_number_after == [
-        (instance, 10),
-        (instance_2, 20),
         (instance, 30),
         (instance_2, 40),
     ]
     assert subscribers.on_change_both_before == [
-        (instance, 'init'),
-        (instance, 10),
-        (instance_2, 'init_2'),
-        (instance_2, 20),
         (instance, 'text'),
         (instance_2, 'text_2'),
         (instance, 30),
@@ -91,19 +88,11 @@ def test(setup):
     ]
     assert subscribers.on_change_before == [
         instance,
-        instance,
-        instance_2,
-        instance_2,
-        instance,
         instance_2,
         instance,
         instance_2,
     ]
     assert subscribers.on_change_after == [
-        instance,
-        instance,
-        instance_2,
-        instance_2,
         instance,
         instance_2,
         instance,

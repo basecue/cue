@@ -90,7 +90,11 @@ class Subscribers(NamedTuple):
 
 
 class _Publisher(Generic[PublisherReturnValue]):
-    def __init__(self, func: PublisherFunc[PublisherReturnValue]) -> None:
+    def __init__(
+        self,
+        func: PublisherFunc[PublisherReturnValue],
+    ) -> None:
+        self._ignore_first_set = set()
         self._subscribers = Subscribers(SubscriberList(), SubscriberList())
         self._func = func
         self._instance: Any = None
@@ -111,11 +115,16 @@ class _Publisher(Generic[PublisherReturnValue]):
         return ret
 
     def __set__(self, instance, value):
+        if id(instance) not in self._ignore_first_set:
+            self._ignore_first_set.add(id(instance))
+            return self._func.__set__(instance, value)
+
         for subscriber in self._subscribers.before:
             subscriber(instance, value)
-        self._func.__set__(instance, value)
+        ret = self._func.__set__(instance, value)
         for subscriber in self._subscribers.after:
             subscriber(instance, value)
+        return ret
 
     def __get__(
         self,

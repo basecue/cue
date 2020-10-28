@@ -10,11 +10,11 @@ def setup():
     class Klass:
         @publisher
         def event(self, text: str, flag: bool = True):
-            pass
+            return text, flag
 
         @publisher
         def event_2(self, text: str, number: int, flag: bool = True):
-            pass
+            return text, number, flag
 
     class Subscriber:
         subscribers = SimpleNamespace(
@@ -58,8 +58,11 @@ def test_event(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    instance.event('text', flag=False)
-    instance_2.event('text_2', flag=True)
+    return_value_instance = instance.event('text', flag=False)
+    return_value_instance_2 =instance_2.event('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert Subscriber.subscribers.on_event_before == [
         (subscriber, instance, 'text', False),
@@ -92,8 +95,11 @@ def test_event_class_call(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    Klass.event(instance, 'text', flag=False)
-    Klass.event(instance_2, 'text_2', flag=True)
+    return_value_instance = Klass.event(instance, 'text', flag=False)
+    return_value_instance_2 = Klass.event(instance_2, 'text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert Subscriber.subscribers.on_event_before == [
         (subscriber, instance, 'text', False),
@@ -125,8 +131,11 @@ def test_event_2(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    instance.event_2('text', 10, flag=False)
-    instance_2.event_2('text_2', 20, flag=True)
+    return_value_instance = instance.event_2('text', 10, flag=False)
+    return_value_instance_2 = instance_2.event_2('text_2', 20, flag=True)
+
+    assert return_value_instance == ("text", 10, False)
+    assert return_value_instance_2 == ("text_2", 20, True)
 
     assert Subscriber.subscribers.on_event_before == []
     assert Subscriber.subscribers.on_event_after == []

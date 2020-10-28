@@ -10,11 +10,11 @@ def setup():
     class Klass:
         @publisher
         def event(self, text: str, flag: bool = True):
-            pass
+            return text, flag
 
         @publisher
         def event_2(self, text: str, number: int, flag: bool = True):
-            pass
+            return text, number, flag
 
     subscribers = SimpleNamespace(
         on_event_before=[],
@@ -57,6 +57,9 @@ def test_event(setup):
     instance.event('text', flag=False)
     instance_2.event('text_2', flag=True)
 
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
+
     assert subscribers.on_event_before == [
         (instance, 'text', False),
         (instance_2, 'text_2', True),
@@ -81,7 +84,10 @@ def test_event_class(setup):
 
     Klass.event(instance, 'text', flag=False)
     Klass.event(instance_2, 'text_2', flag=True)
-
+    
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
+    
     assert subscribers.on_event_before == [
         (instance, 'text', False),
         (instance_2, 'text_2', True),
@@ -106,6 +112,9 @@ def test_event_2(setup):
 
     instance.event_2('text', 10, flag=False)
     instance_2.event_2('text_2', 20, flag=True)
+
+    assert return_value_instance == ("text", 10, False)
+    assert return_value_instance_2 == ("text_2", 20, True)
 
     assert subscribers.on_event_before == []
     assert subscribers.on_event_after == []

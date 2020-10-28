@@ -9,11 +9,11 @@ from cue import publisher, subscribe
 def setup():
     @publisher
     def event(text: str, flag: bool = True):
-        pass
+        return text, flag
 
     @publisher
     def event_2(text: str, number: int, flag: bool = True):
-        pass
+        return text, number, flag
 
     publishers = SimpleNamespace(event=event, event_2=event_2)
 
@@ -51,7 +51,9 @@ def setup():
 
 def test_event(setup):
     publishers, subscribers = setup
-    publishers.event('text', flag=False)
+    return_value = publishers.event('text', flag=False)
+
+    assert return_value == ("text", False)
 
     assert subscribers.on_event_before == [('text', False)]
     assert subscribers.on_event_after == [('text', False)]
@@ -62,7 +64,9 @@ def test_event(setup):
 
 def test_event_2(setup):
     publishers, subscribers = setup
-    publishers.event_2('text', 42, flag=False)
+    return_value = publishers.event_2('text', 42, flag=False)
+
+    assert return_value == ("text", 42, False)
 
     assert subscribers.on_event_before == []
     assert subscribers.on_event_after == []

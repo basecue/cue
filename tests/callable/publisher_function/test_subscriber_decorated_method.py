@@ -9,7 +9,7 @@ from cue import publisher, subscribe
 def setup():
     @publisher
     def event(text: str, flag: bool = True):
-        pass
+        return text, flag
 
     class _Subscriber:
         subscribers = SimpleNamespace(
@@ -35,7 +35,9 @@ def setup():
 @pytest.mark.xfail
 def test(setup):
     event, Subscriber = setup
-    event('text', flag=False)
+    return_value = event('text', flag=False)
+
+    assert return_value == ("text", False)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         ('text', False)
@@ -51,7 +53,9 @@ def test_subscriber_instance(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    event('text', flag=False)
+    return_value = event('text', flag=False)
+
+    assert return_value == ("text", False)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         ('text', False)

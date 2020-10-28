@@ -10,7 +10,7 @@ def setup():
     class Klass:
         @publisher
         def event(self, text: str, flag: bool = True):
-            pass
+            return text, flag
 
     class _Subscriber:
         subscribers = SimpleNamespace(
@@ -33,14 +33,18 @@ def setup():
 
     return Klass, Subscriber
 
+
 @pytest.mark.xfail
 def test(setup):
     Klass, Subscriber = setup
     instance = Klass()
     instance_2 = Klass()
 
-    instance.event('text', flag=False)
-    instance_2.event('text_2', flag=True)
+    return_value_instance = instance.event('text', flag=False)
+    return_value_instance_2 = instance_2.event('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),
@@ -58,8 +62,11 @@ def test_class_call(setup):
     instance = Klass()
     instance_2 = Klass()
 
-    Klass.event(instance, 'text', flag=False)
-    Klass.event(instance_2, 'text_2', flag=True)
+    return_value_instance = Klass.event(instance, 'text', flag=False)
+    return_value_instance_2 = Klass.event(instance_2, 'text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),
@@ -80,8 +87,11 @@ def test_subscriber_instance(setup):
     subscriber = Subscriber()
     subscriber_2 = Subscriber()
 
-    instance.event('text', flag=False)
-    instance_2.event('text_2', flag=True)
+    return_value_instance = instance.event('text', flag=False)
+    return_value_instance_2 = instance_2.event('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),

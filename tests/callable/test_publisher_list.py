@@ -30,6 +30,8 @@ def test(setup):
     instance.append('test')
     instance_2.append('test_2')
 
+    assert instance[0] == 'test'
+    assert instance_2[0] == 'test_2'
     assert subscribers.on_append == [
         (instance, 'test'),
         (instance_2, 'test_2'),

@@ -30,6 +30,8 @@ def test(setup):
     instance['test'] = 10
     instance_2['test_2'] = 20
 
+    assert instance['test'] == 10
+    assert instance_2['test_2'] == 20
     assert subscribers.on_setitem == [
         (instance, 'test', 10),
         (instance_2, 'test_2', 20),
