@@ -93,29 +93,36 @@ class _Publisher(Generic[PublisherReturnValue]):
     def __init__(
         self,
         func: PublisherFunc[PublisherReturnValue],
+        ignore_first=False,
     ) -> None:
+        self._ignore_first = ignore_first
         self._ignore_first_set = set()
         self._subscribers = Subscribers(SubscriberList(), SubscriberList())
         self._func = func
         self._instance: Any = None
+        self._owner = None
 
     def __call__(self, *args: Any, **kwargs: Any) -> PublisherReturnValue:
         if self._instance is None:
-            subscriber_args = args
+            args_with_instance = args
         else:
-            subscriber_args = (self._instance,) + args
+            args_with_instance = (self._instance,) + args
 
         for subscriber in self._subscribers.before:
-            subscriber(*subscriber_args, **kwargs)
+            subscriber(*args_with_instance, **kwargs)
 
-        ret = self._func(*args, **kwargs)
+        if self._instance is not None:
+            func = self._func.__get__(self._instance, self._owner)
+        else:
+            func = self._func
+        ret = func(*args, **kwargs)
 
         for subscriber in self._subscribers.after:
-            subscriber(*subscriber_args, **kwargs)
+            subscriber(*args_with_instance, **kwargs)
         return ret
 
     def __set__(self, instance, value):
-        if id(instance) not in self._ignore_first_set:
+        if self._ignore_first and id(instance) not in self._ignore_first_set:
             self._ignore_first_set.add(id(instance))
             return self._func.__set__(instance, value)
 
@@ -131,11 +138,10 @@ class _Publisher(Generic[PublisherReturnValue]):
         instance: Optional[object],
         owner: Type[object]
     ) -> publisher[PublisherReturnValue]:
-        if instance and isinstance(self._func, property):
+        if instance is not None and isinstance(self._func, property):
             return self._func.__get__(instance)
         self._instance = instance
-        if not isinstance(self._func, (BuiltinFunctionType, MethodWrapperType)):
-            self._func = self._func.__get__(instance, owner)
+        self._owner = owner
         return self
 
     def __repr__(self):
@@ -163,7 +169,7 @@ def publisher(obj):
                 p_field_name = f"_{field.name}"
                 p_property = property(_getter(p_field_name))
                 p_property = p_property.setter(_setter(p_field_name))
-                setattr(obj, field.name, _Publisher(p_property))
+                setattr(obj, field.name, _Publisher(p_property, ignore_first=True))
 
             return obj
     else:

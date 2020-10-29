@@ -54,8 +54,8 @@ def test_event(setup):
     instance = Klass()
     instance_2 = Klass()
 
-    instance.event('text', flag=False)
-    instance_2.event('text_2', flag=True)
+    return_value_instance = instance.event('text', flag=False)
+    return_value_instance_2 = instance_2.event('text_2', flag=True)
 
     assert return_value_instance == ("text", False)
     assert return_value_instance_2 == ("text_2", True)
@@ -82,8 +82,8 @@ def test_event_class(setup):
     instance = Klass()
     instance_2 = Klass()
 
-    Klass.event(instance, 'text', flag=False)
-    Klass.event(instance_2, 'text_2', flag=True)
+    return_value_instance = Klass.event(instance, 'text', flag=False)
+    return_value_instance_2 = Klass.event(instance_2, 'text_2', flag=True)
     
     assert return_value_instance == ("text", False)
     assert return_value_instance_2 == ("text_2", True)
@@ -110,8 +110,8 @@ def test_event_2(setup):
     instance = Klass()
     instance_2 = Klass()
 
-    instance.event_2('text', 10, flag=False)
-    instance_2.event_2('text_2', 20, flag=True)
+    return_value_instance = instance.event_2('text', 10, flag=False)
+    return_value_instance_2 = instance_2.event_2('text_2', 20, flag=True)
 
     assert return_value_instance == ("text", 10, False)
     assert return_value_instance_2 == ("text_2", 20, True)
