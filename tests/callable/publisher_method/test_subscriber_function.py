@@ -28,7 +28,7 @@ def setup():
     def on_event_before(instance: Klass, text, flag: bool = True):
         subscribers.on_event_before.append((instance, text, flag))
 
-    @subscribe.after(Klass.event)
+    @subscribe(Klass.event)
     def on_event_after(instance: Klass, text, flag: bool = True):
         subscribers.on_event_after.append((instance, text, flag))
 
@@ -36,7 +36,7 @@ def setup():
     def on_event_2_before(instance: Klass, text, number, flag: bool = True):
         subscribers.on_event_2_before.append((instance, text, number, flag))
 
-    @subscribe.after(Klass.event_2)
+    @subscribe(Klass.event_2)
     def on_event_2_after(instance: Klass, text, number, flag: bool = True):
         subscribers.on_event_2_after.append((instance, text, number, flag))
 

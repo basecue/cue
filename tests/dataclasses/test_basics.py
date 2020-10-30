@@ -28,7 +28,7 @@ def setup():
     def on_change_before_text(instance: Klass, number: int):
         subscribers.on_change_before_text.append((instance, number))
 
-    @subscribe.after(Klass.text)
+    @subscribe(Klass.text)
     def on_change_after_text(instance: Klass, number: int):
         subscribers.on_change_after_text.append((instance, number))
 
@@ -36,7 +36,7 @@ def setup():
     def on_change_before_flag(instance: Klass, number: int):
         subscribers.on_change_before_flag.append((instance, number))
 
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.number)
     def on_change_after_flag(instance: Klass, number: int):
         subscribers.on_change_after_flag.append((instance, number))
 
@@ -45,8 +45,8 @@ def setup():
     def on_change_before(instance: Klass, value: Union[str, int]):
         subscribers.on_change_before.append((instance, value))
 
-    @subscribe.after(Klass.text)
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.text)
+    @subscribe(Klass.number)
     def on_change_after(instance: Klass, value: Union[str, int]):
         subscribers.on_change_after.append((instance, value))
 

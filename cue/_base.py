@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import dataclasses
 import functools
-from types import BuiltinFunctionType, MethodWrapperType
 from typing import Any, Callable, Generic, List, NamedTuple, Optional, Type, \
     TypeVar, \
     Union, \
@@ -230,14 +229,15 @@ def _subscribe(
     return __subscribe
 
 
-class subscribe:
-    @staticmethod
-    def after(publisher: Union[
+class _MetaSubscribe(type):
+    def __call__(self, publisher: Union[
         Cue[PublisherClass, PublisherReturnValue],
         PublisherFunc[PublisherReturnValue]
     ]):
         return _subscribe(publisher._subscribers.after)
 
+
+class subscribe(metaclass=_MetaSubscribe):
     @staticmethod
     def before(publisher: Union[
         Cue[PublisherClass, PublisherReturnValue],

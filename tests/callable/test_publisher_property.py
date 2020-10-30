@@ -24,7 +24,7 @@ def setup():
         on_number=[],
     )
 
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.number)
     def on_number(instance, value):
         subscribers.on_number.append((instance, value))
 

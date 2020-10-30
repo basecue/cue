@@ -14,9 +14,9 @@ def setup():
         on_setitem=[],
     )
 
-    # @subscribe.after(Klass.__setitem__)
-    # def on_setitem(instance, key, value):
-    #     subscribers.on_setitem.append((instance, key, value))
+    @subscribe(Klass.__setitem__)
+    def on_setitem(instance, key, value):
+        subscribers.on_setitem.append((instance, key, value))
 
     return Klass, subscribers
 
@@ -32,7 +32,7 @@ def test(setup):
 
     assert instance['test'] == 10
     assert instance_2['test_2'] == 20
-    # assert subscribers.on_setitem == [
-    #     (instance, 'test', 10),
-    #     (instance_2, 'test_2', 20),
-    # ]
+    assert subscribers.on_setitem == [
+        (instance, 'test', 10),
+        (instance_2, 'test_2', 20),
+    ]

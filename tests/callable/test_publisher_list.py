@@ -14,7 +14,7 @@ def setup():
         on_append=[],
     )
 
-    @subscribe.after(Klass.append)
+    @subscribe(Klass.append)
     def on_append(instance, item):
         subscribers.on_append.append((instance, item))
 

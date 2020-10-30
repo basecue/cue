@@ -36,7 +36,7 @@ def setup():
     def on_change_number_before(instance: Klass, number: int) -> None:
         subscribers.on_change_number_before.append((instance, number))
 
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.number)
     def on_change_number_after(instance: Klass, number: int) -> None:
         subscribers.on_change_number_after.append((instance, number))
 

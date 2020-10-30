@@ -34,7 +34,7 @@ def setup():
     def on_event_staticmethod_before(instance_cls: Type[Klass], text: str, flag: bool = True):
         subscribers.on_event_staticmethod_before.append((instance_cls, text, flag))
 
-    @subscribe.after(Klass.event_staticmethod)
+    @subscribe(Klass.event_staticmethod)
     def on_event_staticmethod_after_(instance_cls: Type[Klass], text: str, flag: bool = True):
         subscribers.on_event_staticmethod_after_.append((instance_cls, text, flag))
 
@@ -46,7 +46,7 @@ def setup():
             (instance_cls, text, number, flag)
         )
 
-    @subscribe.after(Klass.event_classmethod)
+    @subscribe(Klass.event_classmethod)
     def on_event_classmethod_after(instance_cls: Type[Klass], text: str,
         number: int,
         flag: bool = True):

@@ -19,8 +19,8 @@ def setup():
         def on_change(self):
             pass
 
-    @subscribe.after(Klass.text)
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.text)
+    @subscribe(Klass.number)
     def Klass_change(instance, *_args):
         instance.on_change()
 
@@ -36,7 +36,7 @@ def setup():
     def on_change_text_before(instance: Klass, text: str):
         subscribers.on_change_text_before.append((instance, text))
 
-    @subscribe.after(Klass.number)
+    @subscribe(Klass.number)
     def on_change_number_after(instance: Klass, number: int):
         subscribers.on_change_number_after.append((instance, number))
 
@@ -49,7 +49,7 @@ def setup():
     def on_change_before(instance):
         subscribers.on_change_before.append(instance)
 
-    @subscribe.after(Klass.on_change)
+    @subscribe(Klass.on_change)
     def on_change_after(instance):
         subscribers.on_change_after.append(instance)
 

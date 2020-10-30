@@ -29,7 +29,7 @@ def setup():
     def on_event_before(text, flag: bool = True):
         subscribers.on_event_before.append((text, flag))
 
-    @subscribe.after(event)
+    @subscribe(event)
     def on_event_after(text, flag: bool = True):
         subscribers.on_event_after.append((text, flag))
 
@@ -37,7 +37,7 @@ def setup():
     def on_event_2_before(text, number, flag: bool = True):
         subscribers.on_event_2_before.append((text, number, flag))
 
-    @subscribe.after(event_2)
+    @subscribe(event_2)
     def on_event_2_after(text, number, flag: bool = True):
         subscribers.on_event_2_after.append((text, number, flag))
 
