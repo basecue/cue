@@ -10,11 +10,11 @@ def setup():
     class Klass:
         @publisher
         def event(self, text: str, flag: bool = True):
-            return text, flag
+            return self, text, flag
 
         @publisher
         def event_2(self, text: str, number: int, flag: bool = True):
-            return text, number, flag
+            return self, text, number, flag
 
     class Subscriber:
         subscribers = SimpleNamespace(
@@ -61,8 +61,8 @@ def test_event(setup):
     return_value_instance = instance.event('text', flag=False)
     return_value_instance_2 =instance_2.event('text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (instance, "text", False)
+    assert return_value_instance_2 == (instance_2, "text_2", True)
 
     assert Subscriber.subscribers.on_event_before == [
         (subscriber, instance, 'text', False),
@@ -98,8 +98,8 @@ def test_event_class_call(setup):
     return_value_instance = Klass.event(instance, 'text', flag=False)
     return_value_instance_2 = Klass.event(instance_2, 'text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (instance, "text", False)
+    assert return_value_instance_2 == (instance_2, "text_2", True)
 
     assert Subscriber.subscribers.on_event_before == [
         (subscriber, instance, 'text', False),
@@ -134,8 +134,8 @@ def test_event_2(setup):
     return_value_instance = instance.event_2('text', 10, flag=False)
     return_value_instance_2 = instance_2.event_2('text_2', 20, flag=True)
 
-    assert return_value_instance == ("text", 10, False)
-    assert return_value_instance_2 == ("text_2", 20, True)
+    assert return_value_instance == (instance, "text", 10, False)
+    assert return_value_instance_2 == (instance_2, "text_2", 20, True)
 
     assert Subscriber.subscribers.on_event_before == []
     assert Subscriber.subscribers.on_event_after == []

@@ -12,7 +12,7 @@ def setup():
         @publisher
         @classmethod
         def event_classmethod(cls, text: str, flag: bool = True):
-            return text, flag
+            return cls, text, flag
 
     class Klass(_Klass):
         pass
@@ -54,8 +54,8 @@ def test_instance_event_classmethod(setup):
     return_value_instance = instance.event_classmethod('text', flag=False)
     return_value_instance_2 = instance_2.event_classmethod('text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (Klass, "text", False)
+    assert return_value_instance_2 == (Klass, "text_2", True)
 
     assert subscribers.on_event_classmethod_before == [
         (Klass, 'text', False),
@@ -82,8 +82,8 @@ def test_class_event_classmethod(setup):
     return_value_instance = Klass.event_classmethod('text', flag=False)
     return_value_instance_2 = Klass.event_classmethod('text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (Klass, "text", False)
+    assert return_value_instance_2 == (Klass, "text_2", True)
 
     assert subscribers.on_event_classmethod_before == [
         (Klass, 'text', False),

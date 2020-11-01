@@ -10,7 +10,7 @@ def setup():
     class Klass:
         @publisher
         def event(self, text: str, flag: bool = True):
-            return text, flag
+            return self, text, flag
 
     class Subscriber:
         subscribers = SimpleNamespace(
@@ -33,8 +33,8 @@ def test(setup):
     return_value_instance = instance.event('text', flag=False)
     return_value_instance_2 = instance_2.event('text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (instance, "text", False)
+    assert return_value_instance_2 == (instance_2, "text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),
@@ -50,8 +50,8 @@ def test_class_call(setup):
     return_value_instance = Klass.event(instance, 'text', flag=False)
     return_value_instance_2 = Klass.event(instance_2, 'text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (instance, "text", False)
+    assert return_value_instance_2 == (instance_2, "text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),
@@ -70,8 +70,8 @@ def test_subscriber_instance(setup):
     return_value_instance = instance.event('text', flag=False)
     return_value_instance_2 = instance_2.event('text_2', flag=True)
 
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
+    assert return_value_instance == (instance, "text", False)
+    assert return_value_instance_2 == (instance_2, "text_2", True)
 
     assert Subscriber.subscribers.on_event_staticmethod == [
         (instance, 'text', False),
