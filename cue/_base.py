@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+from logging import getLogger
 from typing import Any, Callable, Generic, List, NamedTuple, Optional, Type, \
     TypeVar, \
     Union, \
@@ -22,8 +23,11 @@ PublisherClass = TypeVar('PublisherClass')
 
 FuncT = Callable[..., Any]
 
+logger = getLogger(__name__)
+
 
 class _Subscriber(Generic[PublisherReturnValue]):
+
     def __init__(
         self,
         func: Callable[[PublisherReturnValue], Any],
@@ -117,16 +121,24 @@ class _Publisher(Generic[PublisherReturnValue]):
             else:
                 args_with_instance = (self._instance,) + args
 
+        logger.debug(
+            'EVENT: %s.%s %s %s', getattr(self._func, "__module__", "builtin"),
+            self._func.__qualname__, args_with_instance, kwargs)
+
         for subscriber in self._subscribers.before:
+            logger.debug('BEFORE: %s.%s', subscriber.__module__, subscriber.__qualname__)
             subscriber(*args_with_instance, **kwargs)
 
         if self._instance is not None or self._owner is not None:
             func = self._func.__get__(self._instance, self._owner)
         else:
             func = self._func
+
+
         ret = func(*args, **kwargs)
 
         for subscriber in self._subscribers.after:
+            logger.debug('AFTER: %s.%s', subscriber.__module__, subscriber.__qualname__)
             subscriber(*args_with_instance, **kwargs)
         return ret
 
