@@ -9,89 +9,36 @@ from cue import publisher, subscribe
 @pytest.fixture
 def setup():
     class _Klass:
-        @publisher
-        @staticmethod
-        def event_staticmethod(text: str, flag: bool = True):
-            return text, flag
 
         @publisher
         @classmethod
-        def event_classmethod(cls, text: str, number: int, flag: bool = True):
-            return text, number, flag
+        def event_classmethod(cls, text: str, flag: bool = True):
+            return text, flag
 
     class Klass(_Klass):
         pass
 
-    class _Subscriber:
+    class Subscriber:
         subscribers = SimpleNamespace(
-            on_event_staticmethod=[],
             on_event_classmethod=[],
         )
 
-        @subscribe.before(Klass.event_staticmethod)
-        @classmethod
-        def on_event_staticmethod(cls, instance_cls: Type[Klass], text: str,
-            flag: bool = True):
-            cls.subscribers.on_event_staticmethod.append(
-                (cls, instance_cls, text, flag))
-
         @subscribe.before(Klass.event_classmethod)
-        @classmethod
-        def on_event_classmethod(cls, instance_cls: Type[Klass], text: str,
-            flag: bool = True):
-            cls.subscribers.on_event_classmethod.append((cls, instance_cls, text, flag))
-
-    class Subscriber(_Subscriber):
-        pass
+        @staticmethod
+        def on_event_classmethod(
+            cls,
+            instance_cls: Type[Klass],
+            text: str,
+            flag: bool = True
+        ):
+            Subscriber.subscribers.on_event_classmethod.append(
+                (cls, instance_cls, text, flag)
+            )
 
     return Klass, Subscriber
 
 
-@pytest.mark.xfail
-def test_event_staticmethod(setup):
-    Klass, Subscriber = setup
-    instance = Klass()
-    instance_2 = Klass()
-
-    return_value_instance = instance.event_staticmethod('text', flag=False)
-    return_value_instance_2 = instance_2.event_staticmethod('text_2', flag=True)
-
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
-
-    assert Subscriber.subscribers.on_event_staticmethod == [
-        (Subscriber, Klass, 'text', False),
-        (Subscriber, Klass, 'text_2', True)
-    ]
-    assert Subscriber.subscribers.on_event_classmethod == [
-    ]
-
-
-@pytest.mark.xfail
-def test_event_staticmethod_subscriber_instance(setup):
-    Klass, Subscriber = setup
-    instance = Klass()
-    instance_2 = Klass()
-
-    subscriber = Subscriber()
-    subscriber_2 = Subscriber()
-
-    return_value_instance = instance.event_staticmethod('text', flag=False)
-    return_value_instance_2 = instance_2.event_staticmethod('text_2', flag=True)
-
-    assert return_value_instance == ("text", False)
-    assert return_value_instance_2 == ("text_2", True)
-
-    assert Subscriber.subscribers.on_event_staticmethod == [
-        (Subscriber, Klass, 'text', False),
-        (Subscriber, Klass, 'text_2', True)
-    ]
-    assert Subscriber.subscribers.on_event_classmethod == [
-    ]
-
-
-@pytest.mark.xfail
-def test_event_classmethod(setup):
+def test_instance_event_classmethod(setup):
     Klass, Subscriber = setup
     instance = Klass()
     instance_2 = Klass()
@@ -102,16 +49,30 @@ def test_event_classmethod(setup):
     assert return_value_instance == ("text", False)
     assert return_value_instance_2 == ("text_2", True)
 
-    assert Subscriber.subscribers.on_event_staticmethod == [
-    ]
     assert Subscriber.subscribers.on_event_classmethod == [
         (Subscriber, Klass, 'text', False),
         (Subscriber, Klass, 'text_2', True)
     ]
 
 
-@pytest.mark.xfail
-def test_event_classmethod_subscriber_instance(setup):
+def test_class_event_classmethod(setup):
+    Klass, Subscriber = setup
+    instance = Klass()
+    instance_2 = Klass()
+
+    return_value_instance = Klass.event_classmethod('text', flag=False)
+    return_value_instance_2 = Klass.event_classmethod('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
+
+    assert Subscriber.subscribers.on_event_classmethod == [
+        (Subscriber, Klass, 'text', False),
+        (Subscriber, Klass, 'text_2', True)
+    ]
+
+
+def test_instance_event_classmethod_subscriber_instance(setup):
     Klass, Subscriber = setup
     instance = Klass()
     instance_2 = Klass()
@@ -125,8 +86,26 @@ def test_event_classmethod_subscriber_instance(setup):
     assert return_value_instance == ("text", False)
     assert return_value_instance_2 == ("text_2", True)
 
-    assert Subscriber.subscribers.on_event_staticmethod == [
+    assert Subscriber.subscribers.on_event_classmethod == [
+        (Subscriber, Klass, 'text', False),
+        (Subscriber, Klass, 'text_2', True)
     ]
+
+
+def test_class_event_classmethod_subscriber_instance(setup):
+    Klass, Subscriber = setup
+    instance = Klass()
+    instance_2 = Klass()
+
+    subscriber = Subscriber()
+    subscriber_2 = Subscriber()
+
+    return_value_instance = instance.event_classmethod('text', flag=False)
+    return_value_instance_2 = instance_2.event_classmethod('text_2', flag=True)
+
+    assert return_value_instance == ("text", False)
+    assert return_value_instance_2 == ("text_2", True)
+
     assert Subscriber.subscribers.on_event_classmethod == [
         (Subscriber, Klass, 'text', False),
         (Subscriber, Klass, 'text_2', True)

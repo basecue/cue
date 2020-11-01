@@ -18,7 +18,7 @@ def setup():
     )
 
     @subscribe(Klass.__init__)
-    def on_setitem(instance, text, flag: bool = True):
+    def on_init(instance, text, flag: bool = True):
         subscribers.on_init.append((instance, text, flag))
 
     return Klass, subscribers

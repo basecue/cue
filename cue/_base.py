@@ -54,6 +54,13 @@ class _Subscriber(Generic[PublisherReturnValue]):
         for specific_publisher_subscribers in self.specific_publisher_subscribers_set:
             specific_publisher_subscribers.remove(self.__call__)
 
+        if isinstance(self.__call__, (staticmethod, classmethod)):
+            for specific_publisher_subscribers in self.specific_publisher_subscribers_set:
+                specific_publisher_subscribers.append(
+                    self.__call__.__get__(None, owner)
+                )
+            return
+
         if hasattr(owner, '__init__'):
             def init_wrapper(init_func):
                 @functools.wraps(init_func)
@@ -102,15 +109,18 @@ class _Publisher(Generic[PublisherReturnValue]):
         self._owner = None
 
     def __call__(self, *args: Any, **kwargs: Any) -> PublisherReturnValue:
-        if self._instance is None:
-            args_with_instance = args
+        if isinstance(self._func, (staticmethod, classmethod)):
+            args_with_instance = (self._owner,) + args
         else:
-            args_with_instance = (self._instance,) + args
+            if self._instance is None:
+                args_with_instance = args
+            else:
+                args_with_instance = (self._instance,) + args
 
         for subscriber in self._subscribers.before:
             subscriber(*args_with_instance, **kwargs)
 
-        if self._instance is not None:
+        if self._instance is not None or self._owner is not None:
             func = self._func.__get__(self._instance, self._owner)
         else:
             func = self._func
