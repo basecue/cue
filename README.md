@@ -35,3 +35,10 @@ def on_method_call(myclass_instance: MyClass, value: str):
     # called after myclass_instance.my_attribute assignment
     ...
 ```
+
+
+Development:
+```
+python setup.py bdist_wheel
+python -m twine upload dist/cuelib-X.Y.Z-py3-none-any.whl
+```

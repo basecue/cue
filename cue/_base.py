@@ -134,7 +134,6 @@ class _Publisher(Generic[PublisherReturnValue]):
         else:
             func = self._func
 
-
         ret = func(*args, **kwargs)
 
         for subscriber in self._subscribers.after:
